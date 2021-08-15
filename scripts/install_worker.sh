@@ -4,15 +4,18 @@
 
 ### setup terminal
 apt-get install -y bash-completion binutils
-echo 'colorscheme ron' >> ~/.vimrc
-echo 'set tabstop=2' >> ~/.vimrc
-echo 'set shiftwidth=2' >> ~/.vimrc
-echo 'set expandtab' >> ~/.vimrc
-echo 'source <(kubectl completion bash)' >> ~/.bashrc
-echo 'alias k=kubectl' >> ~/.bashrc
-echo 'alias c=clear' >> ~/.bashrc
-echo 'complete -F __start_kubectl k' >> ~/.bashrc
-sed -i '1s/^/force_color_prompt=yes\n/' ~/.bashrc
+
+bashrc_file="${HOME}/.bashrc"
+vimrc_file="${HOME}/.vimrc"
+echo 'colorscheme ron' >> "${vimrc_file}"
+echo 'set tabstop=2' >> "${vimrc_file}"
+echo 'set shiftwidth=2' >> "${vimrc_file}"
+echo 'set expandtab' >> "${vimrc_file}"
+echo 'source <(kubectl completion bash)' >> "${bashrc_file}"
+echo 'alias k=kubectl' >> "${bashrc_file}"
+echo 'alias c=clear' >> "${bashrc_file}"
+echo 'complete -F __start_kubectl k' >> "${bashrc_file}"
+sed -i '1s/^/force_color_prompt=yes\n/' "${bashrc_file}"
 
 
 ### install k8s and docker
@@ -21,13 +24,12 @@ apt-get autoremove -y
 apt-get install -y etcd-client vim build-essential
 
 systemctl daemon-reload
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg  -o /usr/share/keyrings/google-cloud-archive.gpg
 cat <<EOF > /etc/apt/sources.list.d/kubernetes.list
-deb http://apt.kubernetes.io/ kubernetes-xenial main
+deb [signed-by=/usr/share/keyrings/google-cloud-archive.gpg] http://apt.kubernetes.io/ kubernetes-xenial main
 EOF
-KUBE_VERSION=1.19.8
 apt-get update
-apt-get install -y docker.io kubelet=${KUBE_VERSION}-00 kubeadm=${KUBE_VERSION}-00 kubectl=${KUBE_VERSION}-00 kubernetes-cni=0.8.7-00
+apt-get install -y docker.io kubelet kubeadm kubectl kubernetes-cni
 
 cat > /etc/docker/daemon.json <<EOF
 {
@@ -49,7 +51,6 @@ docker info | grep -i "storage"
 docker info | grep -i "cgroup"
 
 systemctl enable kubelet && systemctl start kubelet
-
 
 ### init k8s
 kubeadm reset -f
